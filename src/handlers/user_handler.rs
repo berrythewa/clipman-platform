@@ -5,13 +5,15 @@ use axum::{
     extract::{State, Path},
 };
 use serde::{Deserialize, Serialize};
+use chrono::{DateTime, Utc};
+
 use uuid::Uuid;
 use crate::{
     error::AppResult,
     models::User,
-    services::UserService,
+    state::AppState,
 };
-
+use crate::models::{UserResponse};
 #[derive(Deserialize)]
 pub struct CreateUserRequest {
     username: String,
@@ -29,7 +31,7 @@ pub struct UpdatePasswordRequest {
     new_password: String,
 }
 
-pub fn user_routes() -> Router {
+pub fn user_routes() -> Router<AppState> {
     Router::new()
         .route("/users", post(create_user))
         .route("/users/:id", get(get_user))
@@ -39,41 +41,60 @@ pub fn user_routes() -> Router {
 }
 
 async fn create_user(
-    State(service): State<UserService>,
+    State(state): State<AppState>,
     Json(req): Json<CreateUserRequest>,
 ) -> AppResult<Json<User>> {
-    let user = service.register_user(req.username, req.password).await?;
+    let user = state.user_service.register_user(req.username, req.password).await?;
     Ok(Json(user))
 }
 
 async fn get_user(
-    State(service): State<UserService>,
+    State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<User>> {
-    let user = service.get_user_by_id(id).await?;
+    let user = state.user_service.get_user_by_id(id).await?;
     Ok(Json(user))
 }
 
 async fn update_user(
-    State(service): State<UserService>,
+    State(state): State<AppState>,
     Path(id): Path<Uuid>,
-    Json(req): Json<UpdateUserRequest>,
+    Json(_req): Json<UpdateUserRequest>,
 ) -> AppResult<Json<User>> {
-    let user = service.update_user(id, req.username).await?;
+    let user = state.user_service.update_user(id).await?;
+
+    // let user = state.user_service.update_user(id, req.username).await?;
     Ok(Json(user))
 }
 
 async fn update_password(
-    State(service): State<UserService>,
+    State(state): State<AppState>,
     Path(id): Path<Uuid>,
     Json(req): Json<UpdatePasswordRequest>,
 ) -> AppResult<()> {
-    service.update_password(id, &req.old_password, &req.new_password).await
+    state.user_service.update_password(id, &req.old_password).await
+
+    // state.user_service.update_password(id, &req.old_password, &req.new_password).await
 }
 
 async fn delete_user(
-    State(service): State<UserService>,
+    State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> AppResult<()> {
-    service.delete_user(id).await
+    state.user_service.delete_user(id).await
+}
+
+async fn list_users(
+    State(state): State<AppState>,
+) -> AppResult<Json<Vec<UserResponse>>> {
+    let users = state.user_service.list_users().await?;
+    let responses = users.into_iter()
+        .map(|user| UserResponse {
+            id: user.id,
+            username: user.username,
+            created_at: None,
+            updated_at: None,
+        })
+        .collect();
+    Ok(Json(responses))
 }

@@ -3,31 +3,33 @@ use axum::{
     Router,
     Json,
     extract::State,
+    // response::{IntoResponse, Response},
+    http::StatusCode,
 };
 use serde::{Deserialize, Serialize};
 use crate::{
     error::AppResult,
-    services::{AuthService, UserService},
+    state::AppState,
 };
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct LoginRequest {
     username: String,
     password: String,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TokenResponse {
     access_token: String,
     refresh_token: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct RefreshRequest {
     refresh_token: String,
 }
 
-pub fn auth_routes() -> Router {
+pub fn auth_routes() -> Router<AppState> {
     Router::new()
         .route("/login", post(login))
         .route("/refresh", post(refresh))
@@ -35,14 +37,17 @@ pub fn auth_routes() -> Router {
 }
 
 async fn login(
-    State(auth_service): State<AuthService>,
-    State(user_service): State<UserService>,
+    State(state): State<AppState>,
     Json(login_req): Json<LoginRequest>,
 ) -> AppResult<Json<TokenResponse>> {
-    let user = user_service.get_user_by_username(&login_req.username).await?;
-    user_service.verify_password(&user, &login_req.password).await?;
+    let user = state.user_service
+        .get_user_by_username(&login_req.username).await?;
     
-    let (access_token, refresh_token) = auth_service.create_token_pair(user.id)?;
+    state.user_service
+        .verify_password(&user, &login_req.password).await?;
+    
+    let (access_token, refresh_token) = state.auth_service
+        .create_token_pair(user.id)?;
     
     Ok(Json(TokenResponse {
         access_token,
@@ -51,10 +56,11 @@ async fn login(
 }
 
 async fn refresh(
-    State(auth_service): State<AuthService>,
+    State(state): State<AppState>,
     Json(refresh_req): Json<RefreshRequest>,
 ) -> AppResult<Json<TokenResponse>> {
-    let access_token = auth_service.refresh_token(&refresh_req.refresh_token).await?;
+    let access_token = state.auth_service
+        .refresh_token(&refresh_req.refresh_token).await?;
     
     Ok(Json(TokenResponse {
         access_token,
@@ -62,9 +68,13 @@ async fn refresh(
     }))
 }
 
+#[axum_macros::debug_handler]
 async fn logout(
-    State(auth_service): State<AuthService>,
+    State(state): State<AppState>,
     Json(tokens): Json<TokenResponse>,
-) -> AppResult<()> {
-    auth_service.logout(&tokens.access_token, &tokens.refresh_token).await
+) -> (StatusCode, Json<String>) {
+    match state.auth_service.logout(&tokens.access_token, &tokens.refresh_token).await {
+        Ok(()) => (StatusCode::OK, Json("Logged out successfully".to_string())),
+        Err(e) => (StatusCode::UNAUTHORIZED, Json(e.to_string()))
+    }
 }

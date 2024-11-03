@@ -5,6 +5,7 @@ use axum::{
 };
 use serde::Serialize;
 use uuid::Uuid;
+use std::fmt;
 
 #[derive(Debug, Serialize)]
 pub struct ErrorResponse {
@@ -20,35 +21,54 @@ pub enum AppError {
     Unauthorized(String),
     InvalidToken,
     TokenExpired,
-    
     // User errors
     UserNotFound(Uuid),
     UserAlreadyExists(String),
     InvalidCredentials,
-    
     // Device errors
     DeviceNotFound(Uuid),
     DeviceUnauthorized(Uuid),
     TooManyDevices,
-    
     // Clipboard errors
     ClipboardNotFound(Uuid),
     InvalidClipboardData(String),
-    
     // Database errors
     DatabaseError(String),
-    
     // Validation errors
     ValidationError(String),
-    
     // Generic errors
     InternalError(String),
-
     // Connection and data transmission errors
     WebSocketConnectionError(String),
     WebSocketMessageError(String),
     BroadcastError(String),
-    LockError(String),  // For Mutex lock failures
+    LockError(String),
+}
+
+// Implement Display for AppError
+impl fmt::Display for AppError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Unauthorized(msg) => write!(f, "Unauthorized: {}", msg),
+            Self::InvalidToken => write!(f, "Invalid token"),
+            Self::TokenExpired => write!(f, "Token expired"),
+            Self::UserNotFound(id) => write!(f, "User not found: {}", id),
+            Self::UserAlreadyExists(username) => write!(f, "User already exists: {}", username),
+            Self::InvalidCredentials => write!(f, "Invalid credentials"),
+            Self::DeviceNotFound(id) => write!(f, "Device not found: {}", id),
+            Self::DeviceUnauthorized(id) => write!(f, "Device unauthorized: {}", id),
+            Self::TooManyDevices => write!(f, "Too many devices"),
+            Self::ClipboardNotFound(id) => write!(f, "Clipboard not found: {}", id),
+            Self::InvalidClipboardData(msg) => write!(f, "Invalid clipboard data: {}", msg),
+            Self::DatabaseError(msg) => write!(f, "Database error: {}", msg),
+            Self::ValidationError(msg) => write!(f, "Validation error: {}", msg),
+            Self::InternalError(msg) => write!(f, "Internal error: {}", msg),
+            Self::WebSocketConnectionError(msg) => write!(f, "WebSocket connection error: {}", msg),
+            Self::WebSocketMessageError(msg) => write!(f, "WebSocket message error: {}", msg),
+            Self::BroadcastError(msg) => write!(f, "Broadcast error: {}", msg),
+            Self::LockError(msg) => write!(f, "Lock error: {}", msg),
+        }
+    }
 }
 
 impl AppError {
@@ -70,23 +90,10 @@ impl AppError {
     }
 
     fn error_response(&self) -> ErrorResponse {
-        match self {
-            Self::Unauthorized(msg) => ErrorResponse {
-                code: 401,
-                message: "Unauthorized".to_string(),
-                details: Some(msg.clone()),
-            },
-            Self::UserNotFound(id) => ErrorResponse {
-                code: 404,
-                message: "User not found".to_string(),
-                details: Some(format!("User with ID {} not found", id)),
-            },
-            // Add other error mappings...
-            _ => ErrorResponse {
-                code: 500,
-                message: "Internal server error".to_string(),
-                details: None,
-            },
+        ErrorResponse {
+            code: self.status_code().as_u16(),
+            message: self.to_string(),  // Now we can use to_string() because we implemented Display
+            details: None,
         }
     }
 }
@@ -95,7 +102,6 @@ impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let status = self.status_code();
         let body = Json(self.error_response());
-        
         (status, body).into_response()
     }
 }

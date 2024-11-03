@@ -1,12 +1,13 @@
 use crate::error::{AppError, AppResult};
-use crate::models::User;
-use jsonwebtoken::{encode, decode, Header, EncodingKey, DecodingKey, Validation, TokenData};
+use jsonwebtoken::{encode, decode, Header, EncodingKey, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use std::collections::HashSet;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
+use crate::config::Config;
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -22,17 +23,20 @@ pub enum TokenType {
 }
 
 pub struct AuthService {
+    config: Arc<Config>,
     encoding_key: EncodingKey,
     decoding_key: DecodingKey,
     blacklist: Arc<Mutex<HashSet<String>>>,
 }
 
+
 impl AuthService {
-    pub fn new(secret: &[u8]) -> Self {
+    pub fn new(config: Arc<Config>) -> Self {
         Self {
-            encoding_key: EncodingKey::from_secret(secret),
-            decoding_key: DecodingKey::from_secret(secret),
+            encoding_key: EncodingKey::from_secret(config.auth.jwt_secret.as_bytes()),
+            decoding_key: DecodingKey::from_secret(config.auth.jwt_secret.as_bytes()),
             blacklist: Arc::new(Mutex::new(HashSet::new())),
+            config,
         }
     }
 

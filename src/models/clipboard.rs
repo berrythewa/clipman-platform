@@ -18,8 +18,8 @@ impl ClipboardData {
             content,
             device_id,
             user_id,
-            sent_at: 0,  // Will be set by client
-            received_at: 0,  // Will be set by server
+            sent_at: 0,  // set by client
+            received_at: 0,  // set by server
         }
     }
 }
