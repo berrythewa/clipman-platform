@@ -24,7 +24,7 @@ async fn main() {
     info!("Configuration loaded successfully");
 
     // Create application state
-    let state = AppState::new(Arc::new(config)).await;
+    let state = AppState::new(config).await;
     let addr = state.config.server_addr();
     info!("Application state initialized");
 

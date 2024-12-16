@@ -80,6 +80,34 @@ impl UserService {
         user_list.sort_by(|a, b| a.username.cmp(&b.username));
         Ok(user_list)
     }
+
+    pub async fn list_users_paginated(&self, page: u32, limit: u32) -> Vec<UserResponse> {
+        let users = self.users.read().await;
+
+        // Convert HashMap values to a vector
+        let mut user_list: Vec<UserResponse> = users
+            .values()
+            .cloned()
+            .map(UserResponse::from)
+            .collect();
+
+        // Sort by username
+        user_list.sort_by(|a, b| a.username.cmp(&b.username));
+
+        // Apply pagination
+        let start = ((page - 1) * limit) as usize;
+        let end = (start + limit as usize).min(user_list.len());
+
+        user_list[start..end].to_vec()
+    }
+
+   
+    pub async fn user_count(&self) -> usize {
+        let users = self.users.read().await;
+        users.len()
+    }
+    
+
     pub async fn get_user_by_username(&self, username: &str) -> AppResult<User> {
         let usernames = self.usernames.read().await;
         let users = self.users.read().await;

@@ -1,10 +1,12 @@
 use std::path::PathBuf;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::{
-    fmt::{self, time::UtcTime},
-    EnvFilter,
+    fmt::{self},
     prelude::*,
 };
+use tracing_subscriber::filter::EnvFilter;
+use tracing_subscriber::fmt::time::UtcTime;
+// use tracing_subscriber::fmt::time::SystemTime;
 
 pub fn setup_logger() {
     // Create log directory if it doesn't exist

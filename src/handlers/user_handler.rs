@@ -31,9 +31,23 @@ pub struct UpdatePasswordRequest {
     new_password: String,
 }
 
+#[derive(Debug, Serialize)]
+pub struct PaginatedResponse<T> {
+    pub data: Vec<T>,
+    pub meta: PaginationMeta,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PaginationMeta {
+    pub total: usize,
+    pub page: u32,
+    pub limit: u32,
+}
+
 pub fn user_routes() -> Router<AppState> {
     Router::new()
-        .route("/users", post(create_user))
+        .route("/users", get(list_users))
+        .route("/users/register", post(create_user))
         .route("/users/:id", get(get_user))
         .route("/users/:id", put(update_user))
         .route("/users/:id", delete(delete_user))
@@ -87,7 +101,10 @@ async fn delete_user(
 async fn list_users(
     State(state): State<AppState>,
 ) -> AppResult<Json<Vec<UserResponse>>> {
-    let users = state.user_service.list_users().await?;
+    let page = pagination.page.unwrap_or(1);
+    let limit = pagination.limit.unwrap_or(10);
+    let users = state.user_service.list_users_paginated(page, limit).await?;
+    let total = state.user_service.user_count().await;
     let responses = users.into_iter()
         .map(|user| UserResponse {
             id: user.id,
@@ -96,5 +113,13 @@ async fn list_users(
             updated_at: None,
         })
         .collect();
-    Ok(Json(responses))
+    // Ok(Json(responses))
+    Json(PaginatedResponse {
+        data: responses,
+        meta: PaginationMeta {
+            total,
+            page,
+            limit,
+        },
+    })
 }

@@ -1,0 +1,13 @@
+[2m2024-12-12T18:26:48Z[0m [32m INFO[0m main ThreadId(01) [2mclipman_platform::utils::logger[0m[2m:[0m [2msrc/utils/logger.rs[0m[2m:[0m[2m56:[0m Logger initialized successfully
+[2m2024-12-12T18:26:48Z[0m [32m INFO[0m main ThreadId(01) [2mclipman_platform[0m[2m:[0m [2msrc/main.rs[0m[2m:[0m[2m20:[0m Starting Clipman Platform
+[2m2024-12-12T18:26:48Z[0m [32m INFO[0m main ThreadId(01) [2mclipman_platform[0m[2m:[0m [2msrc/main.rs[0m[2m:[0m[2m24:[0m Configuration loaded successfully
+[2m2024-12-12T18:26:48Z[0m [32m INFO[0m main ThreadId(01) [2mclipman_platform[0m[2m:[0m [2msrc/main.rs[0m[2m:[0m[2m29:[0m Application state initialized
+[2m2024-12-12T18:26:48Z[0m [32m INFO[0m main ThreadId(01) [2mclipman_platform[0m[2m:[0m [2msrc/main.rs[0m[2m:[0m[2m35:[0m CORS configuration set up
+[2m2024-12-12T18:26:48Z[0m [32m INFO[0m main ThreadId(01) [2mclipman_platform[0m[2m:[0m [2msrc/main.rs[0m[2m:[0m[2m46:[0m Router configured with all routes
+[2m2024-12-12T18:26:48Z[0m [32m INFO[0m main ThreadId(01) [2mclipman_platform[0m[2m:[0m [2msrc/main.rs[0m[2m:[0m[2m49:[0m 🚀 Server starting on 127.0.0.1:3000
+[2m2024-12-12T18:26:48Z[0m [32m INFO[0m main ThreadId(01) [2mclipman_platform[0m[2m:[0m [2msrc/main.rs[0m[2m:[0m[2m50:[0m 👤 User endpoints enabled
+[2m2024-12-12T18:26:48Z[0m [32m INFO[0m main ThreadId(01) [2mclipman_platform[0m[2m:[0m [2msrc/main.rs[0m[2m:[0m[2m51:[0m 🔒 Auth endpoints enabled
+[2m2024-12-12T18:26:48Z[0m [32m INFO[0m main ThreadId(01) [2mclipman_platform[0m[2m:[0m [2msrc/main.rs[0m[2m:[0m[2m52:[0m 📱 Device endpoints enabled
+[2m2024-12-12T18:26:48Z[0m [32m INFO[0m main ThreadId(01) [2mclipman_platform[0m[2m:[0m [2msrc/main.rs[0m[2m:[0m[2m53:[0m 🔌 WebSocket endpoint enabled
+[2m2024-12-12T18:26:48Z[0m [32m INFO[0m main ThreadId(01) [2mclipman_platform[0m[2m:[0m [2msrc/main.rs[0m[2m:[0m[2m56:[0m Starting HTTP server
+[2m2024-12-12T18:26:48Z[0m [32m INFO[0m main ThreadId(01) [2mclipman_platform[0m[2m:[0m [2msrc/main.rs[0m[2m:[0m[2m58:[0m 🌐 Listening on http://127.0.0.1:3000
